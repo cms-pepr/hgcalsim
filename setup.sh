@@ -142,9 +142,9 @@ action() {
         2>&1 echo "NOTE: LCG_SOFTWARE_BASE $LCG_SOFTWARE_BASE does not exist"
     fi
 
-    # ammend software paths
+    # ammend software paths software/lib/python3.6/site-packages
     hgc_add_bin "$HGC_SOFTWARE/bin:$LCG_SOFTWARE_BASE/bin"
-    hgc_add_py "$HGC_SOFTWARE/lib/python2.7/site-packages:$HGC_SOFTWARE/lib64/python2.7/site-packages:$LCG_SOFTWARE_BASE/lib64/python2.7/site-packages"
+    hgc_add_py "$HGC_SOFTWARE/lib/python3.6/site-packages:$HGC_SOFTWARE/lib64/python3.6/site-packages:$LCG_SOFTWARE_BASE/lib64/python3.6/site-packages"
     hgc_add_lib "$LCG_SOFTWARE_BASE/lib64:$LCG_SOFTWARE_BASE/lib"
 
     # software that is used in this project
@@ -175,9 +175,9 @@ action() {
         hgc_pip_install luigi
 
         # avoid psutil for python 2.7
-        rm -rf $HGC_SOFTWARE/lib/python2.7/site-packages/psutil*
-        rm -rf $HGC_SOFTWARE/lib64/python2.7/site-packages/psutil*
-        echo "raise ImportError('psutil disabled manually')" > "$HGC_SOFTWARE/lib64/python2.7/site-packages/psutil.py"
+        #rm -rf $HGC_SOFTWARE/lib/python2.7/site-packages/psutil*
+        #rm -rf $HGC_SOFTWARE/lib64/python2.7/site-packages/psutil*
+        #echo "raise ImportError('psutil disabled manually')" > "$HGC_SOFTWARE/lib64/python2.7/site-packages/psutil.py"
     }
     [ -z "$ZSH_VERSION" ] && export -f hgc_install_software
     hgc_install_software silent
