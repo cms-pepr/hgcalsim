@@ -21,6 +21,15 @@ import luigi
 law.contrib.load("cms", "git", "htcondor", "root", "slack", "tasks", "telegram", "wlcg")
 
 
+luigi.namespace("base", scope=__name__)
+
+
+def user_parameter(significant=False):
+    return luigi.Parameter(default=os.environ["HGC_GRID_USER"], significant=significant,
+        description="the user executing the task, only for visual purposes on central luigi "
+        "schedulers")
+
+
 class Task(law.Task):
     """
     Custom base task.
@@ -32,14 +41,13 @@ class Task(law.Task):
         law.slack.NotifySlackParameter(significant=False),
     ])
 
-    user = luigi.Parameter(default=os.environ["HGC_GRID_USER"], significant=False,
-        description="the user executing the task, only for visual purposes on central luigi "
-        "schedulers")
+    user = user_parameter(significant=False)
 
     exclude_params_index = {"user"}
     exclude_params_req = {"notify"}
     exclude_params_branch = {"notify"}
     exclude_params_workflow = {"notify"}
+    exclude_params_repr = {"notify"}
 
     message_cache_size = 20
 
@@ -50,7 +58,7 @@ class Task(law.Task):
     default_store = "$HGC_DEFAULT_STORE"
 
     def __init__(self, *args, **kwargs):
-        # harcoded for the moment
+        # harcoded for the moment, should be a parameter in the future
         self.cmssw_version = "CMSSW_11_0_0_patch1"
         self.cmssw_base = os.path.expandvars("$HGC_CMSSW_BASE/{}".format(self.cmssw_version))
 
@@ -111,8 +119,8 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
 
     poll_interval = luigi.FloatParameter(default=0.5, significant=False, description="time between "
         "status polls in minutes, default: 0.5")
-    transfer_logs = luigi.BoolParameter(significant=True, description="transfer job logs to the "
-        "output directory, default: True")
+    transfer_logs = luigi.BoolParameter(default=True, significant=False, description="transfer job "
+        "logs to the output directory, default: True")
     only_missing = luigi.BoolParameter(default=True, significant=False, description="skip tasks "
         "that are considered complete, default: True")
     max_runtime = law.DurationParameter(default=2.0, unit="h", significant=False,
@@ -151,7 +159,7 @@ class HTCondorWorkflow(law.htcondor.HTCondorWorkflow):
         reqs = self.htcondor_workflow_requires()
 
         # add input files
-        config.input_files.append(law.util.law_src_path("contrib/wlcg/scripts/grid_tools.sh"))
+        config.input_files.append(law.util.law_src_path("contrib/wlcg/scripts/law_wlcg_tools.sh"))
 
         # helper to get all possible variants of a directory url
         def uris(req_key):
@@ -196,6 +204,7 @@ class UploadSoftware(Task, law.tasks.TransferLocalFile, law.tasks.RunOnceTask):
     replicas = luigi.IntParameter(default=5, description="number of replicas to generate, "
         "default: 5")
     force_upload = luigi.BoolParameter(default=False, description="force uploading")
+    user = user_parameter(significant=True)
 
     version = None
 
@@ -236,6 +245,7 @@ class UploadRepo(Task, law.git.BundleGitRepository, law.tasks.TransferLocalFile)
 
     replicas = luigi.IntParameter(default=5, description="number of replicas to generate, "
         "default: 5")
+    user = user_parameter(significant=True)
 
     exclude_files = [
         ".data",
@@ -245,8 +255,9 @@ class UploadRepo(Task, law.git.BundleGitRepository, law.tasks.TransferLocalFile)
         "cmssw",
     ]
 
+    task_namespace = "__not_user_specified"
+
     version = None
-    task_namespace = None
 
     def get_repo_path(self):
         # required by BundleGitRepository
@@ -278,11 +289,13 @@ class UploadCMSSW(Task, law.cms.BundleCMSSW, law.tasks.TransferLocalFile, law.ta
     replicas = luigi.IntParameter(default=5, description="number of replicas to generate, "
         "default: 5")
     force_upload = luigi.BoolParameter(default=False, description="force uploading")
+    user = user_parameter(significant=True)
 
     exclude = "^src/tmp"
 
+    task_namespace = "__not_user_specified"
+
     version = None
-    task_namespace = None
 
     def get_cmssw_path(self):
         # required by BundleCMSSW
@@ -295,7 +308,7 @@ class UploadCMSSW(Task, law.cms.BundleCMSSW, law.tasks.TransferLocalFile, law.ta
             return Task.complete(self)
 
     def single_output(self):
-        path = "{}.{}.tgz".format(os.path.basename(self.get_cmssw_path()), self.checksum)
+        path = "{}.{}.tgz".format(os.path.basename(self.cmssw_base), self.checksum)
         return self.auto_target(path, fs="wlcg_fs_user")
 
     def output(self):
@@ -335,6 +348,7 @@ class InstallCMSSW(Task, law.tasks.RunOnceTask):
 
     cores = luigi.IntParameter(default=1, description="the number of cores for compilation, "
         "default: 1")
+    user = user_parameter(significant=True)
 
     version = None
 
@@ -358,70 +372,3 @@ class InstallCMSSW(Task, law.tasks.RunOnceTask):
             raise Exception("CMSSW installation failed")
 
         self.mark_complete()
-
-
-# class CompileConverter(Task):
-
-#     eos = None
-#     version = None
-
-#     def output(self):
-#         return law.LocalFileTarget("$HGC_BASE/modules/hgcal-rechit-input-dat-gen/analyser")
-
-#     @law.decorator.notify
-#     @law.decorator.safe_output
-#     def run(self):
-#         # create the compilation command
-#         cmd = "source env.sh '' && make clean && make"
-
-#         # determine the directory in which to run
-#         cwd = self.output().parent.path
-
-#         # run the command
-#         code = law.util.interruptable_popen(cmd, cwd=cwd, shell=True, executable="/bin/bash")[0]
-#         if code != 0:
-#             raise Exception("converter compilation failed")
-
-
-# class CompileDeepJetCore(Task):
-
-#     n_cores = luigi.IntParameter(default=1, significant=False, description="number of cores to use "
-#         "for compilation")
-#     clean = luigi.BoolParameter(default=False, description="run 'make clean' before compilation")
-
-#     eos = None
-#     version = None
-
-#     def output(self):
-#         return law.LocalFileTarget("$HGC_BASE/modules/DeepJetCore/compiled/classdict.so")
-
-#     def get_setup_cmd(self):
-#         # returns the command required to setup the conda and DeepJetCore env's
-#         conda_executable = "$HGC_CONDA_DIR/bin/conda"
-#         cmd = """
-#             eval "$( scram unsetenv -sh )" &&
-#             eval "$( {} shell.bash hook )" &&
-#             cd $HGC_BASE/modules/DeepJetCore &&
-#             source env.sh \
-#         """.format(conda_executable)
-#         return cmd
-
-#     def get_setup_env(self):
-#         env = os.environ.copy()
-#         env["PYTHONPATH"] = env["HGC_PYTHONPATH_ORIG"]
-#         return env
-
-#     @law.decorator.notify
-#     @law.decorator.safe_output
-#     def run(self):
-#         # create the compilation command
-#         cmd = "{} && cd $HGC_BASE/modules/DeepJetCore/compiled".format(self.get_setup_cmd())
-#         if self.clean:
-#             cmd += " && make clean"
-#         cmd += " && make -j {}".format(self.n_cores)
-
-#         # run the command
-#         code = law.util.interruptable_popen(cmd, env=self.get_setup_env(), shell=True,
-#             executable="/bin/bash")[0]
-#         if code != 0:
-#             raise Exception("DeepJetCore compilation failed")

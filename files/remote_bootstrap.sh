@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 action() {
-    # source law wlcg grid tools
-    source "grid_tools{{file_postfix}}.sh" ""
+    # source law wlcg tools
+    source "law_wlcg_tools{{file_postfix}}.sh" ""
 
 
     #
@@ -15,11 +15,11 @@ action() {
     export HGC_STORE="$HGC_DATA/store"
     export HGC_LOCAL_CACHE="$HGC_DATA/cache"
     export HGC_GRID_USER="{{hgc_grid_user}}"
+    export HGC_CMSSW_BASE="$HGC_DATA/cmssw"
 
     local skip_cmssw="{{hgc_skip_cmssw}}"
     export SCRAM_ARCH="{{hgc_scram_arch}}"
     export CMSSW_VERSION="{{hgc_cmssw_version}}"
-    export CMSSW_BASE="$HGC_DATA/cmssw/$CMSSW_VERSION"
 
     mkdir -p "$HGC_DATA"
 
@@ -45,7 +45,7 @@ action() {
     rm "repo.tgz"
 
     # source the repo setup
-    source "hgcalsim/setup.sh" ""
+    source "{{hgc_repo_name}}/setup.sh" ""
 
 
     #
@@ -55,8 +55,8 @@ action() {
     if [ "$skip_cmssw" != "1" ]; then
         (
             source "/cvmfs/cms.cern.ch/cmsset_default.sh" ""
-            mkdir -p "$( dirname "$CMSSW_BASE" )"
-            cd "$( dirname "$CMSSW_BASE" )"
+            mkdir -p "$HGC_CMSSW_BASE"
+            cd "$HGC_CMSSW_BASE"
             scramv1 project CMSSW "$CMSSW_VERSION"
             cd "$CMSSW_VERSION"
             law_wlcg_download_file "{{hgc_cmssw_uri}}" "$CMSSW_VERSION\.{{hgc_cmssw_checksum}}\.\d+\.tgz" "cmssw.tgz" "3" || return "$?"

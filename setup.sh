@@ -61,7 +61,7 @@ action() {
     # other hgc defaults
     [ -z "$HGC_DATA" ] && export HGC_DATA="$HGC_BASE/data"
     [ -z "$HGC_SOFTWARE" ] && export HGC_SOFTWARE="$HGC_DATA/software"
-    [ -z "$HGC_STORE_LOCAL" ] && export HGC_STORE_LOCAL="$HGC_BASE/store"
+    [ -z "$HGC_STORE_LOCAL" ] && export HGC_STORE_LOCAL="$HGC_DATA/store"
     export HGC_STORE_EOS_GROUP="/eos/cms/store/cmst3/group/hgcal/CMG_studies/pepr/hgcalsim"
     export HGC_STORE_EOS_USER="/eos/cms/store/cmst3/group/hgcal/CMG_studies/$HGC_GRID_USER/hgcalsim"
     [ -z "$HGC_DEFAULT_WLCG_FS" ] && export HGC_DEFAULT_WLCG_FS="wlcg_fs_group"
@@ -120,7 +120,6 @@ action() {
             return "1"
         fi
         echo "$HGC_CMSSW_BASE/$CMSSW_VERSION"
-        return "0"
     }
     [ -z "$ZSH_VERSION" ] && export -f hgc_cmssw_base
 
@@ -142,7 +141,7 @@ action() {
         2>&1 echo "NOTE: LCG_SOFTWARE_BASE $LCG_SOFTWARE_BASE does not exist"
     fi
 
-    # ammend software paths software/lib/python3.6/site-packages
+    # ammend software paths
     hgc_add_bin "$HGC_SOFTWARE/bin:$LCG_SOFTWARE_BASE/bin"
     hgc_add_py "$HGC_SOFTWARE/lib/python2.7/site-packages:$HGC_SOFTWARE/lib64/python2.7/site-packages:$LCG_SOFTWARE_BASE/lib64/python2.7/site-packages"
     hgc_add_lib "$LCG_SOFTWARE_BASE/lib64:$LCG_SOFTWARE_BASE/lib"
