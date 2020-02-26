@@ -85,5 +85,6 @@ law run sim.NtupleTask \
   --workflow htcondor \
   --max-runtime 2h \
   --transfer-logs \
+  --pilot \
   --generator flatEtaGun:50:3.0:100.0  # 50 particles in the energy range 3.0 - 100.0 GeV
 ```
