@@ -77,8 +77,7 @@ See the [law docs on workflows](https://law.readthedocs.io/en/latest/workflows.h
 ##### Run GSD, RECO, and (window) NTUP steps on htcondor
 
 ```shell
-law run sim.NtupTask \
-  law run sim.NtupleTask \
+law run sim.NtupleTask \
   --version dev \
   --n-events 10 \
   --pileup 200 \
