@@ -69,7 +69,14 @@ law run sim.NtupleTask \
   --generator flatEtaGun:50:3.0:100.0  # 50 particles in the energy range 3.0 - 100.0 GeV
 ```
 
-`sim.NtupleTask` is a so-called *workflow*, i.e., a task that triggers the execution of multiple so-called *branch* tasks, or *branches*, whose difference can be expressed by a single number. In this case, one would change the seed for different branch numbers. Without passing a value for the `--branch` parameter, all branches are executed. But here, we set `--branch 0` which triggers only the execution of the first branch. You can add `--n-tasks N` to set the total number of branches (the default is 1 anyway).
+The underlying config files for `cmsRun` are located in [files/](files/):
+
+- [gsd_cfg.py](files/gsd_cfg.py)
+- [reco_cfg.py](files/reco_cfg.py)
+- [ntup_cfg.py](files/ntup_cfg.py)
+
+
+**Note:** `sim.NtupleTask` is a so-called *workflow*, i.e., a task that triggers the execution of multiple so-called *branch* tasks, or *branches*, whose difference can be expressed by a single number. In this case, one would change the seed for different branch numbers. Without passing a value for the `--branch` parameter, all branches are executed. But here, we set `--branch 0` which triggers only the execution of the first branch. You can add `--n-tasks N` to set the total number of branches (the default is 1 anyway).
 
 See the [law docs on workflows](https://law.readthedocs.io/en/latest/workflows.html) for more info on workflows, and the next example command to run multiple branches on htcondor.
 

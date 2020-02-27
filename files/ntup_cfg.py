@@ -37,7 +37,7 @@ seq += process.hgcSimTruth
 
 
 # load and configure the windowInference module
-from RecoHGCal.GraphReco.windowNTupler_cfi import WindowNTupler
+from RecoHGCal.PEPR.windowNTupler_cfi import WindowNTupler
 # one version for the custum truth
 process.windowNTupler = WindowNTupler.clone(
     simClusters="hgcSimTruth",
